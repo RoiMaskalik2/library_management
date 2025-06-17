@@ -1,16 +1,16 @@
-/// This struct represents a book in a library, a book has a name and an author
+//! This module contains implementation for the Book Struct.
+//! a book has a name and an author
 #[derive(Debug)]
 pub struct Book {
-    // The name of the book
+    /// The name of the book
     name: String,
 
-    // The name of the book author
+    /// The name of the book author
     author: String,
 }
 
 impl Book {
     /// Creates a new instance of a book.
-    /// NOTE: A new book will be available by default since it could not be borrowed
     pub fn new(name: String, author: String) -> Book {
         Book { name, author }
     }
