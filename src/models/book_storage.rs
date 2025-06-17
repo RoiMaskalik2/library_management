@@ -4,6 +4,7 @@
 //! from the book storage
 
 use crate::models::Book;
+use ::std::fmt;
 
 /// Enum that represents different errors that can occur while handling a BookStorage Struct
 #[derive(PartialEq, Debug)]
@@ -17,6 +18,8 @@ pub enum BookStorageError {
 
 /// This struct represents book storage in a library, a book storage contains a book
 /// and the amount of copies the book has in the storage.
+///
+/// NOTE: It is recommended to use the struct in the context of the Library Struct, where borrowing and returning a book make sense.
 #[derive(Debug)]
 pub struct BookStorage {
     /// The type of book that is stored in the storage.
@@ -45,6 +48,17 @@ impl BookStorage {
         }
     }
 
+    /// Create a new empty book storage.
+    /// An empty book storage will contain 0 books.
+    ///
+    /// # Arguments
+    ///
+    /// * `book_name` - the name of the book
+    /// * `book_author_name` - the author of the book's name
+    pub fn new_empty(book_name: String, book_author_name: String) -> Self {
+        Self::new(book_name, book_author_name, 0)
+    }
+
     /// Returns the total book copy amount that are in the storage
     pub fn total_copy_amount(&self) -> u32 {
         self.total_copy_amount
@@ -58,17 +72,6 @@ impl BookStorage {
     /// Returns a reference to the Book struct that contains book details of the book storage
     pub fn book(&self) -> &Book {
         &self.book
-    }
-
-    /// Create a new empty book storage.
-    /// An empty book storage will contain 0 books.
-    ///
-    /// # Arguments
-    ///
-    /// * `book_name` - the name of the book
-    /// * `book_author_name` - the author of the book's name
-    pub fn new_empty(book_name: String, book_author_name: String) -> Self {
-        Self::new(book_name, book_author_name, 0)
     }
 
     /// This method adds a book copy to an existing book storage
@@ -109,6 +112,18 @@ impl BookStorage {
         self.borrowed_copy_amount -= 1;
 
         Ok(())
+    }
+}
+
+impl fmt::Display for BookStorage {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        writeln!(f, "{}", self.book())?;
+        write!(
+            f,
+            "{} Books Borrowed Out Of {} Total Books",
+            self.borrowed_copy_amount(),
+            self.total_copy_amount()
+        )
     }
 }
 
