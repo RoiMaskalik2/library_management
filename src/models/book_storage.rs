@@ -6,6 +6,7 @@
 use crate::models::Book;
 
 /// Enum that represents different errors that can occur while handling a BookStorage Struct
+#[derive(PartialEq, Debug)]
 pub enum BookStorageError {
     /// Borrowing a book that is not available to borrow
     BorrowWhenNotAvailable,
@@ -16,6 +17,7 @@ pub enum BookStorageError {
 
 /// This struct represents book storage in a library, a book storage contains a book
 /// and the amount of copies the book has in the storage.
+#[derive(Debug)]
 pub struct BookStorage {
     /// The type of book that is stored in the storage.
     book: Book,
@@ -41,6 +43,21 @@ impl BookStorage {
             borrowed_copy_amount: 0,
             total_copy_amount: copy_amount,
         }
+    }
+
+    /// Returns the total book copy amount that are in the storage
+    pub fn total_copy_amount(&self) -> u32 {
+        self.total_copy_amount
+    }
+
+    /// Returns the amount of copies that are currently borrowed from the storage
+    pub fn borrowed_copy_amount(&self) -> u32 {
+        self.borrowed_copy_amount
+    }
+
+    /// Returns a reference to the Book struct that contains book details of the book storage
+    pub fn book(&self) -> &Book {
+        &self.book
     }
 
     /// Create a new empty book storage.
@@ -70,7 +87,7 @@ impl BookStorage {
     ///
     /// BorrowWhenNotAvailable when there are no copies to be borrowed, else Ok
     pub fn borrow(&mut self) -> Result<(), BookStorageError> {
-        (self.borrowed_copy_amount >= self.total_copy_amount)
+        (self.borrowed_copy_amount < self.total_copy_amount)
             .then_some(())
             .ok_or(BookStorageError::BorrowWhenNotAvailable)?;
 
@@ -85,12 +102,161 @@ impl BookStorage {
     ///
     /// NoCopies when there are no copies to be returned, else Ok
     pub fn return_book(&mut self) -> Result<(), BookStorageError> {
-        (self.borrowed_copy_amount == 0)
+        (self.borrowed_copy_amount > 0)
             .then_some(())
             .ok_or(BookStorageError::NoCopies)?;
 
         self.borrowed_copy_amount -= 1;
 
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // This function creates a default book storage strcut for the tests used in this file
+    fn create_test_storage(total_copies: u32) -> BookStorage {
+        BookStorage::new(
+            String::from("Fuad The Greatest Guy"),
+            String::from("Raifen The Sigma"),
+            total_copies,
+        )
+    }
+
+    // This test checks the `new` method
+    #[test]
+    fn test_initialize() {
+        let storage = create_test_storage(5);
+        assert_eq!(storage.book().name(), "Fuad The Greatest Guy");
+        assert_eq!(storage.book().author(), "Raifen The Sigma");
+        assert_eq!(storage.total_copy_amount, 5);
+        assert_eq!(storage.borrowed_copy_amount, 0);
+    }
+
+    // This test checks that when creating a new empty book storage it has zero copies of books in it
+    #[test]
+    fn test_new_empty_book_storage() {
+        let empty_storage = BookStorage::new_empty(
+            String::from("Expensive Brother"),
+            String::from("Fuadini Bombini"),
+        );
+
+        assert_eq!(empty_storage.total_copy_amount, 0);
+        assert_eq!(empty_storage.borrowed_copy_amount, 0);
+    }
+
+    // This test checks that adding a book to the storage increases only the totatl copies and not the borrowed copies
+    #[test]
+    fn test_add_book_copy() {
+        let mut storage = create_test_storage(3);
+        storage.add_book_copy();
+        assert_eq!(storage.total_copy_amount(), 4);
+        assert_eq!(storage.borrowed_copy_amount(), 0);
+    }
+
+    // This test checks that adding multiple book copies increase the total amount of copies by the correct amount
+    #[test]
+    fn test_add_multiple_book_copies() {
+        let mut storage = create_test_storage(3);
+        storage.add_multiple_book_copies(5);
+        assert_eq!(storage.total_copy_amount(), 8);
+        assert_eq!(storage.borrowed_copy_amount(), 0);
+    }
+
+    // This test checks that adding 0 copies does not change to total amount of copies
+    #[test]
+    fn test_add_zero_book_copies() {
+        let mut storage = create_test_storage(3);
+        storage.add_multiple_book_copies(0);
+        assert_eq!(storage.total_copy_amount(), 3);
+        assert_eq!(storage.borrowed_copy_amount(), 0);
+    }
+
+    // This test checks that borrowing a book is successful when there are available books to borrow from the storage
+    #[test]
+    fn test_borrow_success() {
+        let mut storage = create_test_storage(2);
+        assert_eq!(storage.borrowed_copy_amount, 0);
+
+        // First borrow
+        assert!(storage.borrow().is_ok());
+        assert_eq!(storage.borrowed_copy_amount(), 1);
+        assert_eq!(storage.total_copy_amount(), 2); // total amount should not change
+
+        // Second borrow
+        assert!(storage.borrow().is_ok());
+        assert_eq!(storage.borrowed_copy_amount(), 2);
+        assert_eq!(storage.total_copy_amount(), 2); // total amount should not change
+    }
+
+    // This test checks that borrowing a book is not successful when there are no books left to borrow
+    #[test]
+    fn test_borrow_fails() {
+        let mut storage = create_test_storage(1);
+        let _ = storage.borrow();
+
+        // Borrow when there all the books are borrowed
+        assert_eq!(
+            storage.borrow().unwrap_err(),
+            BookStorageError::BorrowWhenNotAvailable
+        );
+
+        // Make sure nothing changed after the failed borrow attempt
+        assert_eq!(storage.borrowed_copy_amount(), 1);
+        assert_eq!(storage.total_copy_amount(), 1);
+    }
+
+    /// This test checks that returning a book is successful after a copy is borrowed
+    #[test]
+    fn test_return_succees() {
+        let mut storage = create_test_storage(3);
+
+        // Borrow books in order to be able to return them
+        let _ = storage.borrow();
+        let _ = storage.borrow();
+
+        // First return
+        assert!(storage.return_book().is_ok());
+        assert_eq!(storage.borrowed_copy_amount(), 1);
+        assert_eq!(storage.total_copy_amount(), 3);
+
+        // Second return
+        assert!(storage.return_book().is_ok());
+        assert_eq!(storage.borrowed_copy_amount(), 0);
+        assert_eq!(storage.total_copy_amount(), 3);
+    }
+
+    // This test checks that returning a book when no book was borrowed is not successful
+    #[test]
+    fn test_return_fails() {
+        let mut storage = create_test_storage(3);
+
+        // Return a book that was never borrowed
+        assert_eq!(
+            storage.return_book().unwrap_err(),
+            BookStorageError::NoCopies
+        );
+
+        // Make sure nothing changed
+        assert_eq!(storage.borrowed_copy_amount(), 0);
+        assert_eq!(storage.total_copy_amount(), 3);
+    }
+
+    // This test checks that after a failed borrow, it will be successful after a book return
+    #[test]
+    fn test_borrow_success_after_return() {
+        let mut storage = create_test_storage(1);
+
+        // Try to borrow 2 books
+        assert!(storage.borrow().is_ok()); // Should be successful
+        assert!(storage.borrow().is_err()); // Shoule fail
+
+        // Return a book
+        assert!(storage.return_book().is_ok());
+
+        // Try to borrow again
+        assert!(storage.borrow().is_ok()); // Should be successful
     }
 }
