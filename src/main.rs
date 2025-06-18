@@ -6,11 +6,6 @@ use std::ops::{ControlFlow, RangeInclusive};
 
 const VALID_LIBRARY_CHOICE_RANGE: RangeInclusive<u32> = 1..=8;
 
-// List of TODOS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-// Convert all the choices into an enum, matching will look more good
-// Search for best practices to make the code look more clean
-// Seperate the user input function into 2 different functions
-
 // This enum represents all of the different choices that the user has when interacting with the library interface
 enum LibraryInterfaceChoice {
     AddBookToLibrary,
