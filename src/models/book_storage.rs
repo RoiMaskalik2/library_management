@@ -20,7 +20,7 @@ pub enum BookStorageError {
 /// and the amount of copies the book has in the storage.
 ///
 /// NOTE: It is recommended to use the struct in the context of the Library Struct, where borrowing and returning a book make sense.
-#[derive(Debug)]
+#[derive(PartialEq, Debug, Clone)]
 pub struct BookStorage {
     /// The type of book that is stored in the storage.
     book: Book,

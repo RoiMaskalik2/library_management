@@ -2,7 +2,7 @@
 //! a book has a name and an author
 use core::fmt;
 
-#[derive(Debug)]
+#[derive(PartialEq, Debug, Clone)]
 pub struct Book {
     /// The name of the book
     name: String,
