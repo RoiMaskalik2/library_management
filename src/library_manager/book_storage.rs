@@ -116,151 +116,155 @@ impl fmt::Display for BookStorage {
     }
 }
 
-// #[cfg(test)]
-// mod tests {
-//     use super::*;
+#[cfg(test)]
+mod tests {
+    use super::*;
 
-//     // This function creates a default book storage strcut for the tests used in this file
-//     fn create_test_storage(total_copies: u32) -> BookStorage {
-//         BookStorage::new(
-//             String::from("Fuad The Greatest Guy"),
-//             String::from("Raifen The Sigma"),
-//             total_copies,
-//         )
-//     }
+    // This consts are used throughout the tests to create a new book storage and access it
+    const TEST_BOOK_NAME: &str = "Raifen's Bathroom Experience";
+    const TEST_AUTHOR_NAME: &str = "Fuad The Great";
 
-//     // This test checks the `new` method
-//     #[test]
-//     fn test_initialize() {
-//         let storage = create_test_storage(5);
-//         assert_eq!(storage.book().name(), "Fuad The Greatest Guy");
-//         assert_eq!(storage.book().author(), "Raifen The Sigma");
-//         assert_eq!(storage.total_copy_amount, 5);
-//         assert_eq!(storage.borrowed_copy_amount, 0);
-//     }
+    // This function creates a default book storage strcut for the tests used in this file
+    fn create_test_storage(total_copies: u32) -> BookStorage {
+        BookStorage::new(
+            TEST_BOOK_NAME.to_string(),
+            TEST_AUTHOR_NAME.to_string(),
+            total_copies,
+        )
+    }
 
-//     // This test checks that when creating a new empty book storage it has zero copies of books in it
-//     #[test]
-//     fn test_new_empty_book_storage() {
-//         let empty_storage = BookStorage::new_empty(
-//             String::from("Expensive Brother"),
-//             String::from("Fuadini Bombini"),
-//         );
+    // This test checks the `new` method
+    #[test]
+    fn test_initialize() {
+        let storage = create_test_storage(5);
+        assert_eq!(storage.book().name(), TEST_BOOK_NAME);
+        assert_eq!(storage.book().author(), TEST_AUTHOR_NAME);
+        assert_eq!(storage.total_copy_amount, 5);
+        assert_eq!(storage.borrowed_copy_amount, 0);
+    }
 
-//         assert_eq!(empty_storage.total_copy_amount, 0);
-//         assert_eq!(empty_storage.borrowed_copy_amount, 0);
-//     }
+    // This test checks that when creating a new empty book storage it has zero copies of books in it
+    #[test]
+    fn test_new_empty_book_storage() {
+        let empty_storage = BookStorage::new_empty(
+            String::from("Expensive Brother"),
+            String::from("Fuadini Bombini"),
+        );
 
-//     // This test checks that adding a book to the storage increases only the totatl copies and not the borrowed copies
-//     #[test]
-//     fn test_add_book_copy() {
-//         let mut storage = create_test_storage(3);
-//         storage.add_book_copy();
-//         assert_eq!(storage.total_copy_amount(), 4);
-//         assert_eq!(storage.borrowed_copy_amount(), 0);
-//     }
+        assert_eq!(empty_storage.total_copy_amount, 0);
+        assert_eq!(empty_storage.borrowed_copy_amount, 0);
+    }
 
-//     // This test checks that adding multiple book copies increase the total amount of copies by the correct amount
-//     #[test]
-//     fn test_add_multiple_book_copies() {
-//         let mut storage = create_test_storage(3);
-//         storage.add_multiple_book_copies(5);
-//         assert_eq!(storage.total_copy_amount(), 8);
-//         assert_eq!(storage.borrowed_copy_amount(), 0);
-//     }
+    // This test checks that adding a book to the storage increases only the totatl copies and not the borrowed copies
+    #[test]
+    fn test_add_book_copy() {
+        let mut storage = create_test_storage(3);
+        storage.add_book_copy();
+        assert_eq!(storage.total_copy_amount(), 4);
+        assert_eq!(storage.borrowed_copy_amount(), 0);
+    }
 
-//     // This test checks that adding 0 copies does not change to total amount of copies
-//     #[test]
-//     fn test_add_zero_book_copies() {
-//         let mut storage = create_test_storage(3);
-//         storage.add_multiple_book_copies(0);
-//         assert_eq!(storage.total_copy_amount(), 3);
-//         assert_eq!(storage.borrowed_copy_amount(), 0);
-//     }
+    // This test checks that adding multiple book copies increase the total amount of copies by the correct amount
+    #[test]
+    fn test_add_multiple_book_copies() {
+        let mut storage = create_test_storage(3);
+        storage.add_multiple_book_copies(5);
+        assert_eq!(storage.total_copy_amount(), 8);
+        assert_eq!(storage.borrowed_copy_amount(), 0);
+    }
 
-//     // This test checks that borrowing a book is successful when there are available books to borrow from the storage
-//     #[test]
-//     fn test_borrow_success() {
-//         let mut storage = create_test_storage(2);
-//         assert_eq!(storage.borrowed_copy_amount, 0);
+    // This test checks that adding 0 copies does not change to total amount of copies
+    #[test]
+    fn test_add_zero_book_copies() {
+        let mut storage = create_test_storage(3);
+        storage.add_multiple_book_copies(0);
+        assert_eq!(storage.total_copy_amount(), 3);
+        assert_eq!(storage.borrowed_copy_amount(), 0);
+    }
 
-//         // First borrow
-//         assert!(storage.borrow().is_ok());
-//         assert_eq!(storage.borrowed_copy_amount(), 1);
-//         assert_eq!(storage.total_copy_amount(), 2); // total amount should not change
+    // This test checks that borrowing a book is successful when there are available books to borrow from the storage
+    #[test]
+    fn test_borrow_success() {
+        let mut storage = create_test_storage(2);
+        assert_eq!(storage.borrowed_copy_amount, 0);
 
-//         // Second borrow
-//         assert!(storage.borrow().is_ok());
-//         assert_eq!(storage.borrowed_copy_amount(), 2);
-//         assert_eq!(storage.total_copy_amount(), 2); // total amount should not change
-//     }
+        // First borrow
+        assert!(storage.borrow().is_ok());
+        assert_eq!(storage.borrowed_copy_amount(), 1);
+        assert_eq!(storage.total_copy_amount(), 2); // total amount should not change
 
-//     // This test checks that borrowing a book is not successful when there are no books left to borrow
-//     #[test]
-//     fn test_borrow_fails() {
-//         let mut storage = create_test_storage(1);
-//         let _ = storage.borrow();
+        // Second borrow
+        assert!(storage.borrow().is_ok());
+        assert_eq!(storage.borrowed_copy_amount(), 2);
+        assert_eq!(storage.total_copy_amount(), 2); // total amount should not change
+    }
 
-//         // Borrow when there all the books are borrowed
-//         assert_eq!(
-//             storage.borrow().unwrap_err(),
-//             LibraryError::NoBooksAvailable,
-//         );
+    // This test checks that borrowing a book is not successful when there are no books left to borrow
+    #[test]
+    fn test_borrow_fails() {
+        let mut storage = create_test_storage(1);
+        let _ = storage.borrow();
 
-//         // Make sure nothing changed after the failed borrow attempt
-//         assert_eq!(storage.borrowed_copy_amount(), 1);
-//         assert_eq!(storage.total_copy_amount(), 1);
-//     }
+        // Borrow when there all the books are borrowed
+        assert!(matches!(
+            storage.borrow(),
+            Err(LibraryError::NoBooksAvailable),
+        ));
 
-//     /// This test checks that returning a book is successful after a copy is borrowed
-//     #[test]
-//     fn test_return_succees() {
-//         let mut storage = create_test_storage(3);
+        // Make sure nothing changed after the failed borrow attempt
+        assert_eq!(storage.borrowed_copy_amount(), 1);
+        assert_eq!(storage.total_copy_amount(), 1);
+    }
 
-//         // Borrow books in order to be able to return them
-//         let _ = storage.borrow();
-//         let _ = storage.borrow();
+    /// This test checks that returning a book is successful after a copy is borrowed
+    #[test]
+    fn test_return_succees() {
+        let mut storage = create_test_storage(3);
 
-//         // First return
-//         assert!(storage.return_book().is_ok());
-//         assert_eq!(storage.borrowed_copy_amount(), 1);
-//         assert_eq!(storage.total_copy_amount(), 3);
+        // Borrow books in order to be able to return them
+        let _ = storage.borrow();
+        let _ = storage.borrow();
 
-//         // Second return
-//         assert!(storage.return_book().is_ok());
-//         assert_eq!(storage.borrowed_copy_amount(), 0);
-//         assert_eq!(storage.total_copy_amount(), 3);
-//     }
+        // First return
+        assert!(storage.return_book().is_ok());
+        assert_eq!(storage.borrowed_copy_amount(), 1);
+        assert_eq!(storage.total_copy_amount(), 3);
 
-//     // This test checks that returning a book when no book was borrowed is not successful
-//     #[test]
-//     fn test_return_fails() {
-//         let mut storage = create_test_storage(3);
+        // Second return
+        assert!(storage.return_book().is_ok());
+        assert_eq!(storage.borrowed_copy_amount(), 0);
+        assert_eq!(storage.total_copy_amount(), 3);
+    }
 
-//         // Return a book that was never borrowed
-//         assert_eq!(
-//             storage.return_book().unwrap_err(),
-//             LibraryError::NoCopiesToReturn
-//         );
+    // This test checks that returning a book when no book was borrowed is not successful
+    #[test]
+    fn test_return_fails() {
+        let mut storage = create_test_storage(3);
 
-//         // Make sure nothing changed
-//         assert_eq!(storage.borrowed_copy_amount(), 0);
-//         assert_eq!(storage.total_copy_amount(), 3);
-//     }
+        // Return a book that was never borrowed
+        assert!(matches!(
+            storage.return_book(),
+            Err(LibraryError::NoCopiesToReturn)
+        ));
 
-//     // This test checks that after a failed borrow, it will be successful after a book return
-//     #[test]
-//     fn test_borrow_success_after_return() {
-//         let mut storage = create_test_storage(1);
+        // Make sure nothing changed
+        assert_eq!(storage.borrowed_copy_amount(), 0);
+        assert_eq!(storage.total_copy_amount(), 3);
+    }
 
-//         // Try to borrow 2 books
-//         assert!(storage.borrow().is_ok()); // Should be successful
-//         assert!(storage.borrow().is_err()); // Shoule fail
+    // This test checks that after a failed borrow, it will be successful after a book return
+    #[test]
+    fn test_borrow_success_after_return() {
+        let mut storage = create_test_storage(1);
 
-//         // Return a book
-//         assert!(storage.return_book().is_ok());
+        // Try to borrow 2 books
+        assert!(storage.borrow().is_ok()); // Should be successful
+        assert!(storage.borrow().is_err()); // Should fail
 
-//         // Try to borrow again
-//         assert!(storage.borrow().is_ok()); // Should be successful
-//     }
-// }
+        // Return a book
+        assert!(storage.return_book().is_ok());
+
+        // Try to borrow again
+        assert!(storage.borrow().is_ok()); // Should be successful
+    }
+}

@@ -90,143 +90,139 @@ impl Display for Library {
     }
 }
 
-// #[cfg(test)]
-// mod tests {
-//     use super::*;
+#[cfg(test)]
+mod tests {
+    use super::*;
+    // This consts are used throughout the tests to create a new book storage and access it
+    const TEST_BOOK_NAME: &str = "Raifen's Bathroom Experience";
+    const TEST_AUTHOR_NAME: &str = "Fuad The Great";
 
-//     fn test_book_name() -> String {
-//         String::from("Raifen's Bathroom Experience")
-//     }
+    // This const is used in a test where another book storage was needed to be created
+    const TEST_NEW_BOOK_STORAGE_NAME: &str = "Fso Budit Harasho";
 
-//     fn test_author_name() -> String {
-//         String::from("Fuad The Great")
-//     }
+    /// This test checks that creating a new empty library is successful
+    #[test]
+    fn test_new_library_is_empty() {
+        let library = Library::new();
+        assert!(library.book_map.is_empty());
+    }
 
-//     /// This test checks that creating a new empty library is successful
-//     #[test]
-//     fn test_new_library_is_empty() {
-//         let library = Library::new();
-//         assert!(library.book_map.is_empty());
-//     }
+    // This test checks that creating a new book storage is successful
+    #[test]
+    fn test_create_new_book_storage() {
+        let mut library = Library::new();
+        let creation_result = library
+            .create_new_book_storage(TEST_BOOK_NAME.to_string(), TEST_AUTHOR_NAME.to_string());
 
-//     // This test checks that creating a new book storage is successful
-//     #[test]
-//     fn test_create_new_book_storage() {
-//         let mut library = Library::new();
-//         let creation_result = library.create_new_book_storage(test_book_name(), test_author_name());
+        assert!(creation_result.is_ok());
+        assert_eq!(library.book_map.len(), 1);
 
-//         assert!(creation_result.is_ok());
-//         assert_eq!(library.book_map.len(), 1);
+        // Check that the storage was created correctly with one copy
+        let storage_result = library.get_book_storage_by_name(TEST_BOOK_NAME.to_string());
+        assert!(storage_result.is_ok());
 
-//         // Check that the storage was created correctly with one copy
-//         let storage_result = library.get_book_storage_by_name(test_book_name());
-//         assert!(storage_result.is_ok());
+        let storage = storage_result.unwrap();
+        assert_eq!(storage.total_copy_amount(), 1);
+        assert_eq!(storage.borrowed_copy_amount(), 0);
+    }
 
-//         let storage = storage_result.unwrap();
-//         assert_eq!(storage.total_copy_amount(), 1);
-//         assert_eq!(storage.borrowed_copy_amount(), 0);
-//     }
+    // This test checks that creating the same book storage two times fails
+    #[test]
+    fn test_create_existing_book_storage() {
+        let mut library = Library::new();
+        library
+            .create_new_book_storage(TEST_BOOK_NAME.to_string(), TEST_AUTHOR_NAME.to_string())
+            .unwrap();
 
-//     // This test checks that creating the same book storage two times fails
-//     #[test]
-//     fn test_create_existing_book_storage() {
-//         let mut library = Library::new();
-//         library
-//             .create_new_book_storage(test_book_name(), test_author_name())
-//             .unwrap();
+        // Try to create the same storage again
+        assert!(matches!(
+            library
+                .create_new_book_storage(TEST_BOOK_NAME.to_string(), TEST_AUTHOR_NAME.to_string()),
+            Err(LibraryError::CreateExistingBookStorage)
+        ));
 
-//         // Try to create the same storage again
-//         assert_eq!(
-//             library
-//                 .create_new_book_storage(test_book_name(), test_author_name())
-//                 .unwrap_err(),
-//             LibraryError::CreateExistingBookStorage
-//         );
+        // Make sure no book storage was added the second time
+        assert_eq!(library.book_map.len(), 1);
+    }
 
-//         // Make sure no book storage was added the second time
-//         assert_eq!(library.book_map.len(), 1);
-//     }
+    // This test checks that removing a book storage from the library removes all of the books from the library
+    #[test]
+    fn test_remove_book_storage() {
+        let mut library = Library::new();
+        library
+            .create_new_book_storage(TEST_BOOK_NAME.to_string(), TEST_AUTHOR_NAME.to_string())
+            .unwrap();
 
-//     // This test checks that removing a book storage from the library removes all of the books from the library
-//     #[test]
-//     fn test_remove_book_storage() {
-//         let mut library = Library::new();
-//         library
-//             .create_new_book_storage(test_book_name(), test_author_name())
-//             .unwrap();
+        // Remove the book storage that was created
+        assert!(
+            library
+                .remove_book_storage(TEST_BOOK_NAME.to_string())
+                .is_ok()
+        );
+        assert!(library.book_map.is_empty());
 
-//         // Remove the book storage that was created
-//         assert!(library.remove_book_storage(test_book_name()).is_ok());
-//         assert!(library.book_map.is_empty());
+        // Check that we cannot access it
+        assert!(matches!(
+            library.get_book_storage_by_name(TEST_BOOK_NAME.to_string()),
+            Err(LibraryError::NoBookStorageExist)
+        ));
+    }
 
-//         // Every operation on the book name should fail
-//         assert_eq!(
-//             library.add_book_copy(test_book_name()).unwrap_err(),
-//             LibraryError::NoBookStorageExist
-//         );
-//         assert_eq!(
-//             library.borrow_book(test_book_name()).unwrap_err(),
-//             LibraryError::NoBookStorageExist
-//         );
-//         assert_eq!(
-//             library.return_book(test_book_name()).unwrap_err(),
-//             LibraryError::NoBookStorageExist
-//         );
-//     }
+    // This test cheks that removing a not existing test storage is not successful
+    #[test]
+    fn test_remove_not_existing_book_storage() {
+        let mut library = Library::new();
 
-//     // This test cheks that removing a not existing test storage is not successful
-//     #[test]
-//     fn test_remove_not_existing_book_storage() {
-//         let mut library = Library::new();
+        assert!(matches!(
+            library.remove_book_storage(TEST_BOOK_NAME.to_string()),
+            Err(LibraryError::NoBookStorageExist)
+        ));
+    }
 
-//         assert_eq!(
-//             library.remove_book_storage(test_book_name()).unwrap_err(),
-//             LibraryError::NoBookStorageExist
-//         );
-//     }
+    // This test checks that doing operations on one book type does not affect the other
+    #[test]
+    fn test_different_book_storages() {
+        let mut library = Library::new();
+        library
+            .create_new_book_storage(TEST_BOOK_NAME.to_string(), TEST_AUTHOR_NAME.to_string())
+            .unwrap();
 
-//     // This test checks that doing operations on one book type does not affect the other
-//     #[test]
-//     fn test_different_book_storages() {
-//         let mut library = Library::new();
-//         library
-//             .create_new_book_storage(test_book_name(), test_author_name())
-//             .unwrap();
+        // Create another book storage
+        assert!(
+            library
+                .create_new_book_storage(
+                    TEST_NEW_BOOK_STORAGE_NAME.to_string(),
+                    TEST_AUTHOR_NAME.to_string()
+                )
+                .is_ok()
+        );
 
-//         // Create another book storage
-//         assert!(
-//             library
-//                 .create_new_book_storage(String::from("Fso Budit Harasho"), test_author_name())
-//                 .is_ok()
-//         );
+        // Get an initial instance of the new book storage
+        let new_book_storage = library
+            .get_book_storage_by_name(TEST_NEW_BOOK_STORAGE_NAME.to_string())
+            .unwrap()
+            .clone();
 
-//         // Get an initial instance of the new book storage
-//         let new_book_storage = library
-//             .get_book_storage_by_name(String::from("Fso Budit Harasho"))
-//             .unwrap()
-//             .clone();
+        // Do Some operations on the first book storage
+        let copy_amount: u32 = 10;
+        let first_book_storage = library
+            .get_book_storage_by_name(TEST_BOOK_NAME.to_string())
+            .unwrap();
 
-//         // Do Some operations on the first book storage
-//         let copy_amount: u32 = 10;
+        first_book_storage.add_multiple_book_copies(copy_amount);
 
-//         assert!(
-//             library
-//                 .add_multiple_book_copies(test_book_name(), copy_amount)
-//                 .is_ok()
-//         );
+        for _ in 0..=copy_amount {
+            assert!(first_book_storage.borrow().is_ok());
+        }
 
-//         for _ in 0..=copy_amount {
-//             assert!(library.borrow_book(test_book_name()).is_ok());
-//         }
+        assert!(first_book_storage.return_book().is_ok());
 
-//         assert!(library.return_book(test_book_name()).is_ok());
-
-//         // Make sure the second book storage did not change
-//         assert_eq!(
-//             new_book_storage,
-//             (*library
-//                 .get_book_storage_by_name(String::from("Fso Budit Harasho"))
-//                 .unwrap()),
-//         )
-//     }
-// }
+        // Make sure the second book storage did not change
+        assert_eq!(
+            new_book_storage,
+            (*library
+                .get_book_storage_by_name(TEST_NEW_BOOK_STORAGE_NAME.to_string())
+                .unwrap()),
+        )
+    }
+}
