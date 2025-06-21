@@ -1,7 +1,7 @@
 use crate::library_manager::BookStorage;
 use crate::library_manager::{LibraryError, Result};
 
-use core::fmt::{Display, Formatter};
+use std::fmt::{Display, Formatter};
 
 use std::collections::HashMap;
 use std::collections::hash_map::Entry;
@@ -204,7 +204,7 @@ mod tests {
             .clone();
 
         // Do Some operations on the first book storage
-        let copy_amount: u32 = 10;
+        let copy_amount: usize = 10;
         let first_book_storage = library
             .get_book_storage_by_name(TEST_BOOK_NAME.to_string())
             .unwrap();

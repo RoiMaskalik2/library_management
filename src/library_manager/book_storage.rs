@@ -5,7 +5,7 @@
 
 use crate::library_manager::Book;
 use crate::library_manager::error::{LibraryError, Result};
-use ::std::fmt;
+use std::fmt::{Display, Formatter};
 
 /// This struct represents book storage in a library, a book storage contains a book
 /// and the amount of copies the book has in the storage.
@@ -15,10 +15,10 @@ pub struct BookStorage {
     book: Book,
 
     /// The amount of books from the stored book type that are currenly borrowed.
-    borrowed_copy_amount: u32,
+    borrowed_copy_amount: usize,
 
     /// The total amount of books there are in the storage (borrowed and unborrowed).
-    total_copy_amount: u32,
+    total_copy_amount: usize,
 }
 
 impl BookStorage {
@@ -29,7 +29,7 @@ impl BookStorage {
     /// * `book_name` - the name of the book
     /// * `book_author_name` - the author of the book's name
     /// * `copy_amount` - the amount of copies that there are in the storage
-    pub fn new(book_name: String, book_author_name: String, copy_amount: u32) -> Self {
+    pub fn new(book_name: String, book_author_name: String, copy_amount: usize) -> Self {
         Self {
             book: Book::new(book_name, book_author_name),
             borrowed_copy_amount: 0,
@@ -49,12 +49,12 @@ impl BookStorage {
     }
 
     /// Returns the total book copy amount that are in the storage
-    pub fn total_copy_amount(&self) -> u32 {
+    pub fn total_copy_amount(&self) -> usize {
         self.total_copy_amount
     }
 
     /// Returns the amount of copies that are currently borrowed from the storage
-    pub fn borrowed_copy_amount(&self) -> u32 {
+    pub fn borrowed_copy_amount(&self) -> usize {
         self.borrowed_copy_amount
     }
 
@@ -69,7 +69,7 @@ impl BookStorage {
     }
 
     /// This method adds multiple book copies to an existing book storage
-    pub fn add_multiple_book_copies(&mut self, copy_amount: u32) {
+    pub fn add_multiple_book_copies(&mut self, copy_amount: usize) {
         self.total_copy_amount += copy_amount;
     }
 
@@ -104,8 +104,8 @@ impl BookStorage {
     }
 }
 
-impl fmt::Display for BookStorage {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+impl Display for BookStorage {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         writeln!(f, "{}", self.book())?;
         write!(
             f,
@@ -125,7 +125,7 @@ mod tests {
     const TEST_AUTHOR_NAME: &str = "Fuad The Great";
 
     // This function creates a default book storage strcut for the tests used in this file
-    fn create_test_storage(total_copies: u32) -> BookStorage {
+    fn create_test_storage(total_copies: usize) -> BookStorage {
         BookStorage::new(
             TEST_BOOK_NAME.to_string(),
             TEST_AUTHOR_NAME.to_string(),
@@ -146,10 +146,8 @@ mod tests {
     // This test checks that when creating a new empty book storage it has zero copies of books in it
     #[test]
     fn test_new_empty_book_storage() {
-        let empty_storage = BookStorage::new_empty(
-            String::from("Expensive Brother"),
-            String::from("Fuadini Bombini"),
-        );
+        let empty_storage =
+            BookStorage::new_empty(TEST_BOOK_NAME.to_string(), TEST_AUTHOR_NAME.to_string());
 
         assert_eq!(empty_storage.total_copy_amount, 0);
         assert_eq!(empty_storage.borrowed_copy_amount, 0);

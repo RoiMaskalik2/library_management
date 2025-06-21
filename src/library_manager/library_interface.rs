@@ -41,7 +41,7 @@ impl LibraryInterface {
     ///
     /// * `ControlFlow::Continue(())` if the program should continue running after handling the cohice.
     /// * `ControlFlow::Break(())` if the user has chosen to exit.
-    fn handle_library_choice(&mut self, library_choice: u32) -> Result<ControlFlow<()>> {
+    fn handle_library_choice(&mut self, library_choice: usize) -> Result<ControlFlow<()>> {
         match consts::LibraryInterfaceChoice::try_from(library_choice)? {
             consts::LibraryInterfaceChoice::AddBookToLibrary => {
                 let book_name = Self::read_user_input(String::from("Enter book name:"))?;
@@ -152,10 +152,10 @@ impl LibraryInterface {
     ///
     /// The user input if the input is a number.
     /// None Otherwise
-    fn read_user_numeric_input(user_message: String) -> Result<u32> {
+    fn read_user_numeric_input(user_message: String) -> Result<usize> {
         let user_input: String = Self::read_user_input(user_message)?;
 
-        let numeric_input: u32 = user_input.parse()?;
+        let numeric_input: usize = user_input.parse()?;
 
         Ok(numeric_input)
     }
@@ -166,7 +166,7 @@ impl LibraryInterface {
     ///
     /// The input that was received from the user if the library choice is valid (An integer between 1-8)
     /// 'None' Otherwise
-    fn get_library_choice_from_user() -> Result<u32> {
+    fn get_library_choice_from_user() -> Result<usize> {
         let library_choice =
             Self::read_user_numeric_input(String::from("Enter Interface choice:"))?;
 

@@ -1,6 +1,6 @@
 //! This module contains implementation for the Book Struct.
 //! a book has a name and an author
-use core::fmt;
+use std::fmt::{Display, Formatter, Result};
 
 #[derive(PartialEq, Debug, Clone)]
 pub struct Book {
@@ -28,8 +28,8 @@ impl Book {
     }
 }
 
-impl fmt::Display for Book {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+impl Display for Book {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         write!(
             f,
             "Book Name: {}\nBook Author: {}",
