@@ -1,5 +1,6 @@
 pub mod book;
 pub mod book_storage;
+pub mod consts;
 pub mod error;
 pub mod library;
 pub mod library_interface;

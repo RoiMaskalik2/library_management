@@ -1,3 +1,4 @@
+use crate::library_manager::consts;
 use core::result;
 use thiserror::Error;
 
@@ -25,7 +26,7 @@ pub enum LibraryError {
     EmptyInputString,
 
     // Occurs when the user tries to access an interface option that is not a valid number
-    #[error("The Choice should be in the range on Raifen's IQ (1-8)")]
+    #[error("The Choice should be in the range on Raifen's IQ ({}-{})", consts::VALID_LIBRARY_CHOICE_RANGE.start(), consts::VALID_LIBRARY_CHOICE_RANGE.end())]
     // TODO: Incorperate the consts file into here
     UserInputNotInRange,
 
@@ -36,6 +37,10 @@ pub enum LibraryError {
     // Occurs when failing to convert between a string to an integer
     #[error("You stupid, I asked for number you gib no number...")]
     ParseIntError(#[from] std::num::ParseIntError),
+
+    // Occurs when a converting between an invalid number to a library Interface choice Enum
+    #[error("Cannot convert between the given number to a LibraryInterfaceChoice enum")]
+    InvalidInterfaceChoiceConversion,
 }
 
 pub type Result<T> = result::Result<T, LibraryError>;

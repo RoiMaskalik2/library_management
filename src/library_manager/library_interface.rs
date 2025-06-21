@@ -1,39 +1,8 @@
+use crate::library_manager::consts;
 use crate::library_manager::error::Result;
 use crate::library_manager::{Library, LibraryError};
 use std::io::stdin;
-use std::ops::{ControlFlow, RangeInclusive};
-
-const VALID_LIBRARY_CHOICE_RANGE: RangeInclusive<u32> = 1..=8;
-
-/// TODO: Move to another consts file
-// This enum represents all of the different choices that the user has when interacting with the library interface
-enum LibraryInterfaceChoice {
-    AddBookToLibrary,
-    RemoveBookFromLibrary,
-    AddCopiesToExistingStorage,
-    BorrowBook,
-    ReturnBook,
-    GetBookInformation,
-    GetAllBooksInLibraryInformation,
-    LeaveInterface,
-    InvalidChoice,
-}
-
-impl From<u32> for LibraryInterfaceChoice {
-    fn from(numeric_choice: u32) -> Self {
-        match numeric_choice {
-            1 => LibraryInterfaceChoice::AddBookToLibrary,
-            2 => LibraryInterfaceChoice::RemoveBookFromLibrary,
-            3 => LibraryInterfaceChoice::AddCopiesToExistingStorage,
-            4 => LibraryInterfaceChoice::BorrowBook,
-            5 => LibraryInterfaceChoice::ReturnBook,
-            6 => LibraryInterfaceChoice::GetBookInformation,
-            7 => LibraryInterfaceChoice::GetAllBooksInLibraryInformation,
-            8 => LibraryInterfaceChoice::LeaveInterface,
-            _ => LibraryInterfaceChoice::InvalidChoice,
-        }
-    }
-}
+use std::ops::ControlFlow;
 
 pub struct LibraryInterface {
     library: Library,
@@ -73,20 +42,20 @@ impl LibraryInterface {
     /// * `ControlFlow::Continue(())` if the program should continue running after handling the cohice.
     /// * `ControlFlow::Break(())` if the user has chosen to exit.
     fn handle_library_choice(&mut self, library_choice: u32) -> Result<ControlFlow<()>> {
-        match LibraryInterfaceChoice::from(library_choice) {
-            LibraryInterfaceChoice::AddBookToLibrary => {
+        match consts::LibraryInterfaceChoice::try_from(library_choice)? {
+            consts::LibraryInterfaceChoice::AddBookToLibrary => {
                 let book_name = Self::read_user_input(String::from("Enter book name:"))?;
                 let author_name = Self::read_user_input(String::from("Enter book author name:"))?;
 
                 self.library
                     .create_new_book_storage(book_name, author_name)?;
             }
-            LibraryInterfaceChoice::RemoveBookFromLibrary => {
+            consts::LibraryInterfaceChoice::RemoveBookFromLibrary => {
                 let book_name = Self::read_user_input(String::from("Enter book name:"))?;
 
                 self.library.remove_book_storage(book_name)?;
             }
-            LibraryInterfaceChoice::AddCopiesToExistingStorage => {
+            consts::LibraryInterfaceChoice::AddCopiesToExistingStorage => {
                 let book_name = Self::read_user_input(String::from("Enter book name:"))?;
                 let copy_amount = Self::read_user_numeric_input(String::from(
                     "Enter amount of copies you want to add to the storage: ",
@@ -95,34 +64,28 @@ impl LibraryInterface {
                 self.library
                     .add_multiple_book_copies(book_name, copy_amount)?;
             }
-            LibraryInterfaceChoice::BorrowBook => {
+            consts::LibraryInterfaceChoice::BorrowBook => {
                 let book_name = Self::read_user_input(String::from("Enter book name:"))?;
 
                 self.library.borrow_book(book_name)?;
             }
-            LibraryInterfaceChoice::ReturnBook => {
+            consts::LibraryInterfaceChoice::ReturnBook => {
                 let book_name = Self::read_user_input(String::from("Enter book name:"))?;
 
                 self.library.return_book(book_name)?;
             }
-            LibraryInterfaceChoice::GetBookInformation => {
+            consts::LibraryInterfaceChoice::GetBookInformation => {
                 let book_name = Self::read_user_input(String::from("Enter book name:"))?;
 
                 self.library.print_book(book_name)?;
             }
-            LibraryInterfaceChoice::GetAllBooksInLibraryInformation => {
+            consts::LibraryInterfaceChoice::GetAllBooksInLibraryInformation => {
                 println!("{}", self.library);
             }
-            LibraryInterfaceChoice::LeaveInterface => {
+            consts::LibraryInterfaceChoice::LeaveInterface => {
                 println!("I will miss you :(");
 
                 return Ok(ControlFlow::Break(()));
-            }
-            LibraryInterfaceChoice::InvalidChoice => {
-                // TODO: How can I handle that???
-                println!(
-                    "dat number is not in de list, How did you even get here, I already check that.."
-                );
             }
         }
 
@@ -133,16 +96,24 @@ impl LibraryInterface {
     fn print_welcome_message() {
         println!(
             "-----------------------------------------
-        Hello Expensive bro, this is library, library can do dis tings:
-    1. add a new book to library
-    2. make book disapir from library bye bye
-    3. Donate to an existing storage!!!!!
-    4. want borrow book? no problem
-    5. want return book? no problem
-    6. want to know who de modefocker that wrote de book? no problem
-    7. want to know all secrets of library? no problem
-    8. want leave? leave stupid
-    -----------------------------------------"
+        Hello Expensive bro, this is library, library can do dis tings :
+    {}. add a new book to library
+    {}. make book disapir from library bye bye
+    {}. Donate to an existing storage!!!!!
+    {}. want borrow book? no problem
+    {}. want return book? no problem
+    {}. want to know who de modefocker that wrote de book? no problem
+    {}. want to know all secrets of library? no problem
+    {}. want leave? leave stupid
+    -----------------------------------------",
+            consts::ADD_BOOK_TO_LIBRARY,
+            consts::REMOVE_BOOK_FROM_LIBRARY,
+            consts::ADD_COPIES_TO_EXISTING_STORAGE,
+            consts::BORROW_BOOK,
+            consts::RETURN_BOOK,
+            consts::GET_BOOK_INFORMATION,
+            consts::GET_ALL_BOOKS_IN_LIBRARY_INFORMATION,
+            consts::LEAVE_INTERFACE
         );
     }
 
@@ -195,7 +166,7 @@ impl LibraryInterface {
         let library_choice =
             Self::read_user_numeric_input(String::from("Enter Interface choice:"))?;
 
-        (VALID_LIBRARY_CHOICE_RANGE)
+        (consts::VALID_LIBRARY_CHOICE_RANGE)
             .contains(&library_choice)
             .then_some(library_choice)
             .ok_or(LibraryError::UserInputNotInRange)
