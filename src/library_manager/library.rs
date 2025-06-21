@@ -57,51 +57,6 @@ impl Library {
         }
     }
 
-    /// Borrows a copy of a specified book name, if it is available for borrowing.
-    /// A book is available for borrowing if there are at least 1 books availble in it's storage.
-    ///
-    /// # Errors
-    ///
-    /// returns an error if the book does not exist or if no copies are available to borrow.
-    pub fn borrow_book(&mut self, book_name: String) -> Result<()> {
-        let storage = self.get_book_storage_by_name(book_name)?;
-
-        storage.borrow() // TODO: should be ok when I will create one error
-    }
-
-    /// Returns a borrowed copy of a book.
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if the book does not exist or if there are no books to return (book storage is full)
-    pub fn return_book(&mut self, book_name: String) -> Result<()> {
-        let storage = self.get_book_storage_by_name(book_name)?;
-
-        storage.return_book()
-    }
-
-    /// Adds a multiple book copies of an existing book to the library.
-    ///
-    /// # Errors
-    ///
-    /// returns an error if there was no storage create for the book in the library.
-    pub fn add_multiple_book_copies(&mut self, book_name: String, book_copies: u32) -> Result<()> {
-        let storage = self.get_book_storage_by_name(book_name)?;
-
-        storage.add_multiple_book_copies(book_copies);
-
-        Ok(())
-    }
-
-    /// Adds a new copy of an existing book to the library.
-    ///
-    /// # Errors
-    ///
-    /// returns an error if there was no storage create for the book in the library.
-    pub fn add_book_copy(&mut self, book_name: String) -> Result<()> {
-        self.add_multiple_book_copies(book_name, 1)
-    }
-
     /// Removes a book from the library storages, including all of the copies that this book had.
     ///
     /// # Errors
@@ -113,21 +68,6 @@ impl Library {
             Entry::Occupied(entry) => {
                 entry.remove_entry();
 
-                Ok(())
-            }
-        }
-    }
-
-    /// Prints information about the book storage
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if the book does not exis
-    pub fn print_book(&mut self, book_name: String) -> Result<()> {
-        match self.book_map.entry(book_name) {
-            Entry::Vacant(_) => Err(LibraryError::NoBookStorageExist),
-            Entry::Occupied(mut entry) => {
-                println!("{}", entry.get_mut());
                 Ok(())
             }
         }
@@ -159,7 +99,7 @@ impl Display for Library {
 //     }
 
 //     fn test_author_name() -> String {
-//         String::from("Raifen's Bathroom Experience")
+//         String::from("Fuad The Great")
 //     }
 
 //     /// This test checks that creating a new empty library is successful
@@ -205,151 +145,6 @@ impl Display for Library {
 
 //         // Make sure no book storage was added the second time
 //         assert_eq!(library.book_map.len(), 1);
-//     }
-
-//     // This test checks that borrowing a book from the library is successful
-//     #[test]
-//     fn test_borrow_book_success() {
-//         let mut library = Library::new();
-//         library
-//             .create_new_book_storage(test_book_name(), test_author_name())
-//             .unwrap();
-
-//         assert!(library.borrow_book(test_book_name()).is_ok());
-
-//         // Make sure the book was actually borrowed
-//         let storage = library.get_book_storage_by_name(test_book_name()).unwrap();
-//         assert_eq!(storage.borrowed_copy_amount(), 1);
-//     }
-
-//     // This test checks that borrowing a not existing book is not successful
-//     #[test]
-//     fn test_borrow_not_existing_book() {
-//         let mut library = Library::new();
-
-//         assert_eq!(
-//             library.borrow_book(test_book_name()).unwrap_err(),
-//             LibraryError::NoBookStorageExist
-//         );
-//     }
-
-//     // This test checks that borrowing a book when no books are available is not successful
-//     #[test]
-//     fn test_borrow_not_available() {
-//         let mut library = Library::new();
-//         library
-//             .create_new_book_storage(test_book_name(), test_author_name())
-//             .unwrap();
-
-//         assert!(library.borrow_book(test_book_name()).is_ok());
-
-//         // Borrow when all the books are borrowed
-//         assert_eq!(
-//             library.borrow_book(test_book_name()),
-//             Err(LibraryError::NoBooksAvailable)
-//         );
-//     }
-
-//     // This test checks that returning a book after borrowing one is successful
-//     #[test]
-//     fn test_return_book_success() {
-//         let mut library = Library::new();
-//         library
-//             .create_new_book_storage(test_book_name(), test_author_name())
-//             .unwrap();
-//         library.borrow_book(test_book_name()).unwrap();
-
-//         // Return a book after borrowing
-//         assert!(library.return_book(test_book_name()).is_ok());
-
-//         // Make sure the book is available for borrowing again
-//         assert!(library.borrow_book(test_book_name()).is_ok());
-//     }
-
-//     // This test checks that returning a not existing book is not successful
-//     #[test]
-//     fn test_return_not_existing_book() {
-//         let mut library = Library::new();
-
-//         assert_eq!(
-//             library.return_book(test_book_name()).unwrap_err(),
-//             LibraryError::NoBookStorageExist
-//         );
-//     }
-
-//     // This test checks that returning a book when no book was borrowed is not successful
-//     #[test]
-//     fn test_return_fails() {
-//         let mut library = Library::new();
-//         library
-//             .create_new_book_storage(test_book_name(), test_author_name())
-//             .unwrap();
-
-//         // Return a book that was never borrowed
-//         assert_eq!(
-//             library.return_book(test_book_name()).unwrap_err(),
-//             LibraryError::NoCopiesToReturn
-//         );
-//     }
-
-//     // This test checks that adding a book copy allows for one more borrow to occur without returning a book
-//     #[test]
-//     fn test_add_book_copy() {
-//         let mut library = Library::new();
-//         library
-//             .create_new_book_storage(test_book_name(), test_author_name())
-//             .unwrap();
-
-//         assert!(library.add_book_copy(test_book_name()).is_ok());
-
-//         // First 2 borrows should be succesful.
-//         assert!(library.borrow_book(test_book_name()).is_ok());
-//         assert!(library.borrow_book(test_book_name()).is_ok());
-
-//         // Third borrow should fail
-//         assert_eq!(
-//             library.borrow_book(test_book_name()).unwrap_err(),
-//             LibraryError::NoBooksAvailable
-//         );
-//     }
-
-//     // This test checks that adding multiple book copies allows for multiple borrows
-//     #[test]
-//     fn test_add_multiple_book_copies() {
-//         let mut library = Library::new();
-//         library
-//             .create_new_book_storage(test_book_name(), test_author_name())
-//             .unwrap();
-
-//         let copy_amount: u32 = 10;
-
-//         assert!(
-//             library
-//                 .add_multiple_book_copies(test_book_name(), copy_amount)
-//                 .is_ok()
-//         );
-
-//         // All of the borrows should be successful
-//         for _ in 0..=copy_amount {
-//             assert!(library.borrow_book(test_book_name()).is_ok());
-//         }
-
-//         // This borrow should fail because there are no more books to borrow
-//         assert_eq!(
-//             library.borrow_book(test_book_name()).unwrap_err(),
-//             LibraryError::NoBooksAvailable
-//         );
-//     }
-
-//     // This test checks that adding a book copy of a not existing book fails
-//     #[test]
-//     fn test_add_copy_to_not_existing_book() {
-//         let mut library = Library::new();
-
-//         assert_eq!(
-//             library.add_book_copy(test_book_name()).unwrap_err(),
-//             LibraryError::NoBookStorageExist
-//         );
 //     }
 
 //     // This test checks that removing a book storage from the library removes all of the books from the library

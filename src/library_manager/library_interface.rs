@@ -62,22 +62,26 @@ impl LibraryInterface {
                 ))?;
 
                 self.library
-                    .add_multiple_book_copies(book_name, copy_amount)?;
+                    .get_book_storage_by_name(book_name)?
+                    .add_multiple_book_copies(copy_amount);
             }
             consts::LibraryInterfaceChoice::BorrowBook => {
                 let book_name = Self::read_user_input(String::from("Enter book name:"))?;
 
-                self.library.borrow_book(book_name)?;
+                self.library.get_book_storage_by_name(book_name)?.borrow()?;
             }
             consts::LibraryInterfaceChoice::ReturnBook => {
                 let book_name = Self::read_user_input(String::from("Enter book name:"))?;
 
-                self.library.return_book(book_name)?;
+                self.library
+                    .get_book_storage_by_name(book_name)?
+                    .return_book()?;
             }
             consts::LibraryInterfaceChoice::GetBookInformation => {
                 let book_name = Self::read_user_input(String::from("Enter book name:"))?;
 
-                self.library.print_book(book_name)?;
+                let book_storage = self.library.get_book_storage_by_name(book_name)?;
+                println!("{}", book_storage)
             }
             consts::LibraryInterfaceChoice::GetAllBooksInLibraryInformation => {
                 println!("{}", self.library);
