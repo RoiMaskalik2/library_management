@@ -1,43 +1,27 @@
-//! This module contains implementation for the BookStorage Struct.
-//! This struct will be a part of the Library Struct, Each BookStorage has details about
-//! the book it contains, the amount of books there are in the storage, and the number of books that are currently borrowed
-//! from the book storage
+//! This module implements the [BookStorage] struct
 
-use crate::models::Book;
+use crate::interface_choices::Book;
+use crate::interface_choices::error::{LibraryError, Result};
+use std::fmt::{Display, Formatter};
 
-/// Enum that represents different errors that can occur while handling a BookStorage Struct
-#[derive(PartialEq, Debug)]
-pub enum BookStorageError {
-    /// Borrowing a book that is not available to borrow
-    BorrowWhenNotAvailable,
-
-    /// Returning a book when there are 0 books borrowed from the storage
-    NoCopies,
-}
-
-/// This struct represents book storage in a library, a book storage contains a book
-/// and the amount of copies the book has in the storage.
-#[derive(Debug)]
+/// This struct represents book storage in a library, a book storage contains book information
+/// represented with the [Book] struct, the amount of copies the book has in the storage and the amount of copies that
+/// were borrowed from the storage
+#[derive(PartialEq, Debug, Clone)]
 pub struct BookStorage {
     /// The type of book that is stored in the storage.
     book: Book,
 
     /// The amount of books from the stored book type that are currenly borrowed.
-    borrowed_copy_amount: u32,
+    borrowed_copy_amount: usize,
 
     /// The total amount of books there are in the storage (borrowed and unborrowed).
-    total_copy_amount: u32,
+    total_copy_amount: usize,
 }
 
 impl BookStorage {
     /// Create a new book storage with a specific amount of of books
-    ///
-    /// # Arguments
-    ///
-    /// * `book_name` - the name of the book
-    /// * `book_author_name` - the author of the book's name
-    /// * `copy_amount` - the amount of copies that there are in the storage
-    pub fn new(book_name: String, book_author_name: String, copy_amount: u32) -> Self {
+    pub fn new(book_name: String, book_author_name: String, copy_amount: usize) -> Self {
         Self {
             book: Book::new(book_name, book_author_name),
             borrowed_copy_amount: 0,
@@ -45,13 +29,19 @@ impl BookStorage {
         }
     }
 
+    /// Create a new empty book storage.
+    /// An empty book storage will contain 0 books.
+    pub fn new_empty(book_name: String, book_author_name: String) -> Self {
+        Self::new(book_name, book_author_name, 0)
+    }
+
     /// Returns the total book copy amount that are in the storage
-    pub fn total_copy_amount(&self) -> u32 {
+    pub fn total_copy_amount(&self) -> usize {
         self.total_copy_amount
     }
 
     /// Returns the amount of copies that are currently borrowed from the storage
-    pub fn borrowed_copy_amount(&self) -> u32 {
+    pub fn borrowed_copy_amount(&self) -> usize {
         self.borrowed_copy_amount
     }
 
@@ -60,36 +50,21 @@ impl BookStorage {
         &self.book
     }
 
-    /// Create a new empty book storage.
-    /// An empty book storage will contain 0 books.
-    ///
-    /// # Arguments
-    ///
-    /// * `book_name` - the name of the book
-    /// * `book_author_name` - the author of the book's name
-    pub fn new_empty(book_name: String, book_author_name: String) -> Self {
-        Self::new(book_name, book_author_name, 0)
-    }
-
-    /// This method adds a book copy to an existing book storage
+    /// Adds a book copy to an existing book storage
     pub fn add_book_copy(&mut self) {
         self.add_multiple_book_copies(1);
     }
 
-    /// This method adds multiple book copies to an existing book storage
-    pub fn add_multiple_book_copies(&mut self, copy_amount: u32) {
+    /// Adds multiple book copies to an existing book storage
+    pub fn add_multiple_book_copies(&mut self, copy_amount: usize) {
         self.total_copy_amount += copy_amount;
     }
 
     /// Borrows the book if it is available for borrowing
-    ///
-    /// # Returns
-    ///
-    /// BorrowWhenNotAvailable when there are no copies to be borrowed, else Ok
-    pub fn borrow(&mut self) -> Result<(), BookStorageError> {
+    pub fn borrow(&mut self) -> Result<()> {
         (self.borrowed_copy_amount < self.total_copy_amount)
             .then_some(())
-            .ok_or(BookStorageError::BorrowWhenNotAvailable)?;
+            .ok_or(LibraryError::NoBooksAvailable)?;
 
         self.borrowed_copy_amount += 1;
 
@@ -97,14 +72,10 @@ impl BookStorage {
     }
 
     /// Increases the total amount of available books in the book storage
-    ///
-    /// # Returns
-    ///
-    /// NoCopies when there are no copies to be returned, else Ok
-    pub fn return_book(&mut self) -> Result<(), BookStorageError> {
+    pub fn return_book(&mut self) -> Result<()> {
         (self.borrowed_copy_amount > 0)
             .then_some(())
-            .ok_or(BookStorageError::NoCopies)?;
+            .ok_or(LibraryError::NoCopiesToReturn)?;
 
         self.borrowed_copy_amount -= 1;
 
@@ -112,15 +83,31 @@ impl BookStorage {
     }
 }
 
+impl Display for BookStorage {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        writeln!(f, "{}", self.book())?;
+        write!(
+            f,
+            "{} Books Borrowed Out Of {} Total Books",
+            self.borrowed_copy_amount(),
+            self.total_copy_amount()
+        )
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
+    // This consts are used throughout the tests to create a new book storage and access it
+    const TEST_BOOK_NAME: &str = "Raifen's Bathroom Experience";
+    const TEST_AUTHOR_NAME: &str = "Fuad The Great";
+
     // This function creates a default book storage strcut for the tests used in this file
-    fn create_test_storage(total_copies: u32) -> BookStorage {
+    fn create_test_storage(total_copies: usize) -> BookStorage {
         BookStorage::new(
-            String::from("Fuad The Greatest Guy"),
-            String::from("Raifen The Sigma"),
+            TEST_BOOK_NAME.to_string(),
+            TEST_AUTHOR_NAME.to_string(),
             total_copies,
         )
     }
@@ -129,8 +116,8 @@ mod tests {
     #[test]
     fn test_initialize() {
         let storage = create_test_storage(5);
-        assert_eq!(storage.book().name(), "Fuad The Greatest Guy");
-        assert_eq!(storage.book().author(), "Raifen The Sigma");
+        assert_eq!(storage.book().name(), TEST_BOOK_NAME);
+        assert_eq!(storage.book().author(), TEST_AUTHOR_NAME);
         assert_eq!(storage.total_copy_amount, 5);
         assert_eq!(storage.borrowed_copy_amount, 0);
     }
@@ -138,10 +125,8 @@ mod tests {
     // This test checks that when creating a new empty book storage it has zero copies of books in it
     #[test]
     fn test_new_empty_book_storage() {
-        let empty_storage = BookStorage::new_empty(
-            String::from("Expensive Brother"),
-            String::from("Fuadini Bombini"),
-        );
+        let empty_storage =
+            BookStorage::new_empty(TEST_BOOK_NAME.to_string(), TEST_AUTHOR_NAME.to_string());
 
         assert_eq!(empty_storage.total_copy_amount, 0);
         assert_eq!(empty_storage.borrowed_copy_amount, 0);
@@ -198,10 +183,10 @@ mod tests {
         let _ = storage.borrow();
 
         // Borrow when there all the books are borrowed
-        assert_eq!(
-            storage.borrow().unwrap_err(),
-            BookStorageError::BorrowWhenNotAvailable
-        );
+        assert!(matches!(
+            storage.borrow(),
+            Err(LibraryError::NoBooksAvailable),
+        ));
 
         // Make sure nothing changed after the failed borrow attempt
         assert_eq!(storage.borrowed_copy_amount(), 1);
@@ -234,10 +219,10 @@ mod tests {
         let mut storage = create_test_storage(3);
 
         // Return a book that was never borrowed
-        assert_eq!(
-            storage.return_book().unwrap_err(),
-            BookStorageError::NoCopies
-        );
+        assert!(matches!(
+            storage.return_book(),
+            Err(LibraryError::NoCopiesToReturn)
+        ));
 
         // Make sure nothing changed
         assert_eq!(storage.borrowed_copy_amount(), 0);
@@ -251,7 +236,7 @@ mod tests {
 
         // Try to borrow 2 books
         assert!(storage.borrow().is_ok()); // Should be successful
-        assert!(storage.borrow().is_err()); // Shoule fail
+        assert!(storage.borrow().is_err()); // Should fail
 
         // Return a book
         assert!(storage.return_book().is_ok());
