@@ -1,7 +1,7 @@
-//! This module contains implementation for the Book Struct.
-//! a book has a name and an author
+//! This module implements the [Book] Struct.
 use std::fmt::{Display, Formatter, Result};
 
+/// This struct represents a book, each book has a name and an author
 #[derive(PartialEq, Debug, Clone)]
 pub struct Book {
     /// The name of the book

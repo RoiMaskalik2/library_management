@@ -1,14 +1,12 @@
-//! This module contains implementation for the BookStorage Struct.
-//! This struct will be a part of the Library Struct, Each BookStorage has details about
-//! the book it contains, the amount of books there are in the storage, and the number of books that are currently borrowed
-//! from the book storage
+//! This module implements the [BookStorage] struct
 
-use crate::library_manager::Book;
-use crate::library_manager::error::{LibraryError, Result};
+use crate::interface_choices::Book;
+use crate::interface_choices::error::{LibraryError, Result};
 use std::fmt::{Display, Formatter};
 
-/// This struct represents book storage in a library, a book storage contains a book
-/// and the amount of copies the book has in the storage.
+/// This struct represents book storage in a library, a book storage contains book information
+/// represented with the [Book] struct, the amount of copies the book has in the storage and the amount of copies that
+/// were borrowed from the storage
 #[derive(PartialEq, Debug, Clone)]
 pub struct BookStorage {
     /// The type of book that is stored in the storage.
@@ -23,12 +21,6 @@ pub struct BookStorage {
 
 impl BookStorage {
     /// Create a new book storage with a specific amount of of books
-    ///
-    /// # Arguments
-    ///
-    /// * `book_name` - the name of the book
-    /// * `book_author_name` - the author of the book's name
-    /// * `copy_amount` - the amount of copies that there are in the storage
     pub fn new(book_name: String, book_author_name: String, copy_amount: usize) -> Self {
         Self {
             book: Book::new(book_name, book_author_name),
@@ -39,11 +31,6 @@ impl BookStorage {
 
     /// Create a new empty book storage.
     /// An empty book storage will contain 0 books.
-    ///
-    /// # Arguments
-    ///
-    /// * `book_name` - the name of the book
-    /// * `book_author_name` - the author of the book's name
     pub fn new_empty(book_name: String, book_author_name: String) -> Self {
         Self::new(book_name, book_author_name, 0)
     }
@@ -63,21 +50,17 @@ impl BookStorage {
         &self.book
     }
 
-    /// This method adds a book copy to an existing book storage
+    /// Adds a book copy to an existing book storage
     pub fn add_book_copy(&mut self) {
         self.add_multiple_book_copies(1);
     }
 
-    /// This method adds multiple book copies to an existing book storage
+    /// Adds multiple book copies to an existing book storage
     pub fn add_multiple_book_copies(&mut self, copy_amount: usize) {
         self.total_copy_amount += copy_amount;
     }
 
     /// Borrows the book if it is available for borrowing
-    ///
-    /// # Returns
-    ///
-    /// BorrowWhenNotAvailable when there are no copies to be borrowed, else Ok
     pub fn borrow(&mut self) -> Result<()> {
         (self.borrowed_copy_amount < self.total_copy_amount)
             .then_some(())
@@ -89,10 +72,6 @@ impl BookStorage {
     }
 
     /// Increases the total amount of available books in the book storage
-    ///
-    /// # Returns
-    ///
-    /// NoCopiesToReturn when there are no copies to be returned, else Ok
     pub fn return_book(&mut self) -> Result<()> {
         (self.borrowed_copy_amount > 0)
             .then_some(())

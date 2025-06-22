@@ -1,8 +1,9 @@
-use crate::library_manager::consts;
+//! This module implements the [LibraryError] enum
+use crate::interface_choices::consts;
 use core::result;
 use thiserror::Error;
 
-/// Enum that represents different errors that can occur when using the library_manager module
+/// Enum that represents different errors that can occur when using the library_interface module
 #[derive(Debug, Error)]
 pub enum LibraryError {
     /// Occurs when creating a new book storage of a book that has already a storage

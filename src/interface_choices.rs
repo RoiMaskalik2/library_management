@@ -1,3 +1,5 @@
+//! This module groups all it's submodules for creating a library user interface which allows to receive choices
+//! by the user and convert them into an operation in the library
 pub mod book;
 pub mod book_storage;
 pub mod consts;

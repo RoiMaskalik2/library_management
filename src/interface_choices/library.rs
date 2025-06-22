@@ -1,42 +1,38 @@
-use crate::library_manager::BookStorage;
-use crate::library_manager::{LibraryError, Result};
+//! This module implements the [Library] struct
 
-use std::fmt::{Display, Formatter};
+use crate::interface_choices::BookStorage;
+use crate::interface_choices::{LibraryError, Result};
 
 use std::collections::HashMap;
 use std::collections::hash_map::Entry;
+use std::fmt::{Display, Formatter};
 
 /// This struct represents a library that contain book storages.
 /// Each book storage is represented by the books name.
-#[derive(Debug)]
 /// Note: We assume that there could not be 2 books that have the same name in a library,
 /// even if they have different authors
+#[derive(Debug)]
 pub struct Library {
-    // my current implementation idea is to have some kind of hash map from a string of a book name
-    // to an instance of BookStorage.
     book_map: HashMap<String, BookStorage>,
 }
 
 impl Library {
-    /// Creates a new empty library
+    /// Creates a new empty library that does not contain any book storages
     pub fn new() -> Self {
         Self {
             book_map: HashMap::new(),
         }
     }
 
+    /// Receives a book name that represents a book storage and returns a mutable reference to the storage
+    /// This could be done becuase of our assumption of the library that two book storages could have the same name
     pub fn get_book_storage_by_name(&mut self, book_name: String) -> Result<&mut BookStorage> {
         self.book_map
             .get_mut(&book_name)
             .ok_or(LibraryError::NoBookStorageExist)
     }
 
-    /// This method creates a book storage for a new book that has not been in the library yet.
-    ///
-    /// # Arguments
-    ///
-    /// * `book_name` - the name of the book
-    /// * `book_author_name` - the author of the book's name
+    /// Creates a book storage for a new book that has not been in the library yet.
     pub fn create_new_book_storage(
         &mut self,
         book_name: String,
@@ -58,10 +54,6 @@ impl Library {
     }
 
     /// Removes a book from the library storages, including all of the copies that this book had.
-    ///
-    /// # Errors
-    ///
-    /// returns an error if there was no storage create for the book in the library from the first place.
     pub fn remove_book_storage(&mut self, book_name: String) -> Result<()> {
         match self.book_map.entry(book_name) {
             Entry::Vacant(_) => Err(LibraryError::NoBookStorageExist),
